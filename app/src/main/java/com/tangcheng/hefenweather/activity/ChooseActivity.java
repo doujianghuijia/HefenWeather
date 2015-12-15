@@ -2,7 +2,10 @@ package com.tangcheng.hefenweather.activity;
 
 import android.app.Activity;
 import android.app.ProgressDialog;
+import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
@@ -26,7 +29,7 @@ import java.util.List;
 /**
  * Created by tc on 2015/12/14.
  */
-public class MainActivity extends Activity {
+public class ChooseActivity extends Activity {
     private TextView textView;
     private ListView listView;
     private ArrayAdapter<String> adapter;                   //listView适配器
@@ -50,7 +53,14 @@ public class MainActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.main_activity);
+        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(this); //获得sharedPreference
+        if(sp.getBoolean("hasChecked",false)){      //判断是否已经选择了城市，如果是则不进行城市选择，这里注意放在setContentView之前
+            Intent intent = new Intent(this,DisplayActivity.class);
+            startActivity(intent);
+            finish();       //结束activity
+            return;      //后续代码不执行
+        }
+        setContentView(R.layout.choose_activity);
         textView = (TextView) findViewById(R.id.textView_main_activity);
         listView = (ListView) findViewById(R.id.listView_mian_activity);
         dbUtil = HefenWeatherDBUtil.getInstance(this);          //得到数据库操作工具类的实例
@@ -67,6 +77,10 @@ public class MainActivity extends Activity {
                     queryConties();
                 }else if(current_level == COUNTY_LEVEL){        //
                     select_county = countyList.get(position);
+                    Intent intent = new Intent(ChooseActivity.this,DisplayActivity.class);
+                    intent.putExtra("countyName",select_county);
+                    startActivity(intent);
+                    finish();
                 }
             }
         });
@@ -183,11 +197,11 @@ public class MainActivity extends Activity {
                     @Override
                     public void run() {
                         closeProgressDialog();
-                        Toast.makeText(MainActivity.this,"加载失败",Toast.LENGTH_SHORT).show();
+                        Toast.makeText(ChooseActivity.this,"加载失败",Toast.LENGTH_SHORT).show();
                     }
                 });
             }
-        });
+        },null);
     }
 
     /**
